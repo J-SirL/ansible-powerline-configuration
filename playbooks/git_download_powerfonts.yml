@@ -1,0 +1,27 @@
+## for the ansible_powerline_configuration_role by Johan Sörell JsirL
+---
+- name: Install powerfonts
+  hosts: localhost
+  connection: local
+  become: True
+  tasks:
+
+   - name: clone powerline fonts
+     ansible.builtin.git:
+       repo: https://github.com/powerline/fonts.git
+       dest: /tmp/fonts
+       single_branch: yes
+       version: master 
+     register: powerlinefonts
+
+   - name: Install powerlinefonts
+     ansible.builtin.script:
+       cmd: /tmp/fonts/install.sh
+     when: powerlinefonts.changed
+
+   - name: Remove tmp directory
+     ansible.builtin.file:
+       path: /tmp/fonts
+       state: absent
+
+  
