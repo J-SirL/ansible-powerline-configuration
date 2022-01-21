@@ -1,4 +1,7 @@
 ## for the ansible_powerline_configuration_role by Johan Sörell JsirL
+
+# @TODO Inside VS Code settings.json, just add
+# "terminal.integrated.fontFamily": "Font family" to fix issues with powerline in code! 
 ---
 - name: Install powerfonts
   hosts: localhost
