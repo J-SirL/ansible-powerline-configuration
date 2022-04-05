@@ -1,0 +1,108 @@
+---
+- name: Assamble system info
+  hosts: all
+  gather_facts: Yes
+  #environment:
+  #  PATH: "{{ ansible_env.PATH }}"
+  become: yes
+  tasks: 
+    
+    - name: debug
+      debug:
+        msg:  "{{ ansible_env.PATH }}:/thingy/bin"
+    - name: Define local host/path for ease of use.
+      set_fact:
+        base_path: "{{ playbook_dir }}/ansible-playbooks.wiki/{{ inventory_hostname }}" #"ansible-playbooks.wiki/{{ inventory_hostname }}"
+        today: "{{ ansible_date_time.date }}"
+        anchors: "\n * [Running Processes](#running-processes)  \n * [Installed Packages](#installed-packages)  \n * [Upgradable Packages](#upgradable-packages)  \n * [Diskspace Usage DF](#diskspace-usage)  \n * [Diskspace usage  ansible_mounts](#diskspace-usage-ansiblemounts)  \n * [Ansible Facts](#ansible-facts)  \n"
+
+    - name: check for updates
+      yum:
+        name: "*"
+        state: latest
+      ignore_errors: Yes
+
+    - name: Enable EPEL Repository on CentOS 7
+      yum:
+        name: 
+         - epel-release
+         - perl
+         - inxi
+        state: latest
+    #  become: True
+    #  #when: ansible_facts['os_family'] == 'RedHat' and ansible_facts['distribution_major_version'] == '7'
+
+
+    #- name: Install the latest version of Apache from the testing repo
+    #  yum:
+    ##    name: inxi
+     #   state: present
+
+#    - name: install inxi
+#      package:
+##         name: inxi
+ #        state: installed
+      
+
+    - name: run inxi
+      ansible.builtin.shell: inxi
+#       cmd: inxi 
+      #args:
+      #  executable: /usr/bin/
+      register: machine_info
+
+    - name: Ensure necessary directory exists.
+      file:
+        name: "{{ base_path }}"
+        state: directory
+        mode: "0750"
+        force: true
+      delegate_to: localhost
+      connection: local
+      become: false
+    
+    - name: Write outputs to files
+      copy: 
+        content: "{{ item.content }}"
+        dest: "{{ base_path }}/{{ item.variable_name }}.part" #'{{ base_path }}"/"{{ item.variable_name }}".part'
+      delegate_to: localhost
+      connection: local
+      become: false
+      #no_log: true
+      with_items:
+        - { content: "### Machine info  \n",                                               variable_name: "01_H1_header"       }
+        - { content: "```json\n{{ machine_info.stdout_lines | to_nice_json | default('NA') }}\n```",    variable_name: "02_machine_info"    }
+    
+#    - { content: "# {{ inventory_hostname }}  as of {{ today }}  \n",           variable_name: "01_H1_header"       }
+#    - { content: " {{ anchors }} ",                                             variable_name: "02_anchors"         }
+#    - { content: "### Running Processes:  \n",                                  variable_name: "03_H3_header"       }
+#    - { content: "```\n{{ pstree.stdout | default('NA') }}\n```  \n",           variable_name: "05_pstree"          }
+#    - { content: "\n --- \n",                                                   variable_name: "09_rule"            }
+#    - { content: "### Installed packages  \n",                                  variable_name: "13_H3_header"       }
+#    - { content: "```\n{{ rpms.stdout | default('NA') }}\n```  \n",             variable_name: "15_rpms"            }
+#    - { content: "\n --- \n",                                                   variable_name: "19_rule"            }
+#    - { content: "### Upgradable packages  \n",                                 variable_name: "23_H3_header"       }
+#    - { content: "```\n{{ yum_upgrade.stdout | default('NA') }}\n```  \n",      variable_name: "25_yum_upgrade"     }
+#    - { content: "\n --- \n",                                                   variable_name: "29_rule"            }
+#    - { content: "### Diskspace usage  ansible_mounts \n",                      variable_name: "33_H3_header"       }
+#    - { content: "```json\n{{ ansible_mounts | to_nice_json | default('NA') }}\n```",          variable_name: "35_mountpoints"     }
+#    - { content: "\n --- \n",                                                   variable_name: "39_rule"            }
+#    - { content: "### Diskspace usage DF \n",                                  variable_name: "43_H3_header"       }
+#    - { content: "```\n{{df.stdout | default('NA') }}\n```  \n",                variable_name: "45_df"              }
+#    - { content: "\n --- \n",                                                   variable_name: "49_rule"            }
+
+    - name: Concatenate created page files.
+      assemble:
+        src: "{{ base_path }}"
+        dest: "{{ base_path }}.md"
+      delegate_to: localhost
+      connection: local
+      become: false
+    
+    - name: Purge .part files
+      file:
+        name: "{{ base_path }}"
+        state: absent
+      delegate_to: localhost
+      connection: local
+      become: false

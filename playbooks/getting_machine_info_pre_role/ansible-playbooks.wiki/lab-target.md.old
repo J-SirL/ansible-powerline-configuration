@@ -1,0 +1,8 @@
+### Machine info  
+```json
+[
+    "CPU: 2x 1-core AMD EPYC-Rome (-SMP-) speed: 1697 MHz",
+    "Kernel: 4.18.0-305.el8.x86_64 x86_64 Up: 1h 6m Mem: 630.2/1313.7 MiB (48.0%)",
+    "Storage: 20 GiB (30.4% used) Procs: 198 Shell: sh inxi: 3.3.11"
+]
+```

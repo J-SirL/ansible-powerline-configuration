@@ -1,0 +1,14 @@
+---
+# defaults file for powerline_configuration
+
+# @var: 
+# user:
+#   description: installing powerline for the listed user
+# @var_end 
+
+user: demouser
+
+powerline_config_packages:
+  - powerline
+  - powerline-fonts
+  - vim-powerline

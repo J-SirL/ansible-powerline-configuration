@@ -1,0 +1,10 @@
+
+#Ansible managed
+
+dev2-centos8 ansible_host=192.168.122.234
+f34-lab01 ansible_host=192.168.122.112
+centos8 ansible_host=192.168.122.24
+
+lab-target
+
+

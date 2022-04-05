@@ -1,0 +1,126 @@
+---
+- name: Assamble system info
+  hosts: all
+  gather_facts: Yes
+  vars: 
+    - headline : []
+    - data_string: []
+    - the_total_string: []
+  become: yes
+  tasks: 
+
+    - name: Define local host/path for ease of use.
+      set_fact:
+        base_path: "{{ playbook_dir }}/ansible-playbooks.wiki/{{ inventory_hostname }}" #"ansible-playbooks.wiki/{{ inventory_hostname }}"
+        today: "{{ ansible_date_time.date }}"
+
+    - name: Ensure necessary directory exists.
+      file:
+        name: "{{ base_path }}"
+        state: directory
+        mode: "0750"
+        force: true
+      delegate_to: localhost
+      connection: local
+      become: false
+
+    - name: run inxi
+      ansible.builtin.shell: inxi -Fzxc0
+#       cmd: inxi 
+      #args:
+      #  executable: /usr/bin/
+      register: machine_info
+
+    - name: debug
+      ansible.builtin.debug:
+         msg: "{{ machine_info.stdout }}"
+
+# Test 24 Jan kl 23:38 Ansible Split
+##
+    - name: setfacts for accounts on server
+      set_fact:        
+        headline: '{{ headline + [ item | split(":") | first ] }}'
+        data_string: '{{ data_string + [ item | split(":") | last ] }}'
+        the_total_string: "{{ headline }}{{ data_string  }}" 
+      loop: "{{ machine_info.stdout_lines }}"
+
+    - name: so simple I hope lol
+      ansible.builtin.debug:
+       msg: "{{ item.0 }} : {{ item.1 }}"
+      loop: "{{ headline|zip(data_string)|list }}"
+
+ #   - fail:
+ #       msg: brakpoint
+    
+  #  - name: PRINT headline + datastring
+  #    ansible.builtin.debug:
+  #     msg: "{{ item }}:{{ data_string }}"
+  #    with_items: "{{ headline }}"
+  #    loop_control: "{{ data_string }}"
+  #      loop_vars: 
+
+    - name: with_nested -> loop
+      ansible.builtin.debug:
+        msg: "{{ item }}"
+      loop: "{{ headline|product(data_string)|list }}"
+
+
+
+
+## Inspired by! this
+#- name: raid_info results loop over all hosts output/result
+#  debug:
+#    msg: "{{ item.stdout }}"
+#  with_items: "{{ raid_info.results }}"
+#  loop_control: 
+#    label: "{{ item.item.node_name }}"
+
+
+    - debug:
+        msg: "{{ item | split(':') | first }}"
+      loop: "{{ machine_info.stdout_lines }}"
+      register: looped_values
+
+    - name: test nested
+      ansible.builtin.debug:
+        msg: "{{ item.item }}"
+      with_items: "{{ looped_values.results }}"
+      loop_control:
+        label: "{{ item }}"
+
+    - ansible.builtin.debug:
+        msg: "{{ looped_values }}"
+
+  #  - fail:
+  #      msg: brakpoint
+
+    - name: Write outputs to files
+      copy: 
+        content: "{{ item.content }}"
+        dest: "{{ base_path }}/{{ item.variable_name }}.part" #'{{ base_path }}"/"{{ item.variable_name }}".part'
+      delegate_to: localhost
+      connection: local
+      become: false
+      #no_log: true
+      with_items:
+        - { content: "### Machine info  \n",                                               variable_name: "01_H1_header"       }
+        - { content: "\n{{ looped_values | to_nice_json | default('NA') }}\n",    variable_name: "02_machine_info"    }
+
+    # assemble all partfiles to a Markdown file
+    - name: Assemble to md and purge part files
+      include_tasks: 
+        file:  assemble_and_purge.yml
+
+#item | split('@') | last 
+
+#    - set_fact:
+#        service_name: "{{ statusapplication.stdout_lines[0] }}"
+#        service_loaded: "{{ statusapplication.stdout_lines[1].split()[1] }}"
+
+
+    #- name: Display all ports from cluster1
+    #  ansible.builtin.debug:
+    #    var: item
+    #  loop: "{{ domain_definition | community.general.json_query(server_name_cluster1_query) }}"
+    #  vars:
+    #    server_name_cluster1_query: "domain.server[?cluster=='cluster1'].port"

@@ -1,0 +1,7 @@
+# packages to install for powerline configuration
+---
+ansible.builtin.dnf:
+  name: "{{ powerline_config_packages }}"
+  state: latest
+
+...

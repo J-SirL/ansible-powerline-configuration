@@ -1,0 +1,10 @@
+# OpenSCAP installer
+# dnf install openscap-scanner
+# dnf install openscap-daemon
+# dnf install scap-workbench
+# You can install SCAPtimony on All Platforms using:
+#gem install scaptimony
+# dnf install scap-security-guide
+
+
+---

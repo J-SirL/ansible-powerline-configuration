@@ -1,0 +1,16 @@
+---
+    - name: Concatenate created page files.
+      assemble:
+        src: "{{ base_path }}"
+        dest: "{{ base_path }}.md"
+      delegate_to: localhost
+      connection: local
+      become: false
+    
+    - name: Purge .part files
+      file:
+        name: "{{ base_path }}"
+        state: absent
+      delegate_to: localhost
+      connection: local
+      become: false

@@ -1,0 +1,17 @@
+---
+- name: Testing jninja magic
+  hosts: localhost
+  connection: local
+  vars:
+    install_packages:
+      - "denna kommer med"
+     '{% for item in programs %} - "{{item.program}}" {% endfor %}'
+
+  tasks:
+
+    - name: test
+      debug:
+        var: "{{ item }}"
+      loop: "{{ install_packages }}"
+        
+

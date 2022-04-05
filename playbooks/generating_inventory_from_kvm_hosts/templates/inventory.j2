@@ -1,0 +1,13 @@
+{# Create the inventory file {{ playbook_dir }}/inventory with the following:
+  no filters at the moment
+#}
+
+#{{ ansible_managed }}
+
+{% for host in play_hosts  %}
+{{ hostvars[host]['ansible_hostname'] }} ansible_host={{ hostvars[host]['ansible_default_ipv4']['address'] }}
+{% endfor %}
+
+
+
+

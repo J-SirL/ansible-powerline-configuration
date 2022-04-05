@@ -1,0 +1,22 @@
+---
+- name: Testing ideas or this role
+  hosts: localhost
+  connection: local
+  vars:
+    user: 
+     - name: demouser
+     - name: jsorell
+     #comments: "testing"
+
+    powerline_config_packages:
+     - powerline
+     - powerline-fonts
+
+  tasks:
+
+    - name: debug user
+      debug:
+        var: "{{ item.name }}"
+      with_items: 
+        "{{ user }}"
+

@@ -1,0 +1,12 @@
+# getting machine info with inxi
+---
+- name: Getting machgine info with inxi
+  hosts: localhost
+  tasks:
+    - name: run inxi
+      shell: inxi -Fzxc0
+      register: machine_info
+
+    - name: debug variables
+      debug:
+        msg: "{{ machine_info.stdout }}"
